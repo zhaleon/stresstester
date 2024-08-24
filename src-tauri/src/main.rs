@@ -11,11 +11,24 @@ fn greet(name: &str) -> String {
 }
 
 #[tauri::command]
-fn create_cpp_file(contents: &str) -> String {
-    // create a cpp file with the contents
-    let mut file = std::fs::File::create("temp.cpp").unwrap();
-    file.write_all(contents.as_bytes()).unwrap();
+fn create_cpp_file(contents: &str) -> Result<(), String> {
+    use std::fs::File;
+    use std::io::Write;
+
+    // Create a cpp file with the provided contents
+    let mut file = match File::create("temp.cpp") {
+        Ok(f) => f,
+        Err(e) => return Err(format!("Failed to create file: {}", e)),
+    };
+
+    // Write contents to the file
+    if let Err(e) = file.write_all(contents.as_bytes()) {
+        return Err(format!("Failed to write to file: {}", e));
+    }
+    format!("Created temp.cpp");
+    Ok(())
 }
+
 
 #[tauri::command]
 fn compile_cpp_file(path: &str) -> String {
